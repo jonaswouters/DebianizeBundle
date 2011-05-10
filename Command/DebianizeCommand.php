@@ -93,14 +93,13 @@ class DebianizeCommand extends BaseCommand
 
         // dependencies
         $package = $this->container->getParameter('ton_debianize.package');
-        print_r($package);
         $dependencies = $package['dependencies'];
         $dependenciesString = '';
         foreach ($dependencies as $dependency) {
             if ($dependenciesString != '') {
-                $dependenciesString += ', ';
+                $dependenciesString .= ', ';
             }
-            $dependenciesString += $dependency;
+            $dependenciesString .= $dependency;
         }
 
         $version = $input->getArgument('version');
@@ -112,11 +111,11 @@ class DebianizeCommand extends BaseCommand
         $controlFile = $root.'/../vendor/bundles/TON/Bundle/DebianizeBundle/Resources/control';
         $controlFileDestination = $root.'/cache/debian/control/control';
         $file_contents = file_get_contents($controlFile);
-        $file_contents = str_replace("{{name}}",$this->container->getParameter('ton_debianize.package.name'),$file_contents);
-        $file_contents = str_replace("{{maintainer}}",$this->container->getParameter('ton_debianize.package.maintainer'),$file_contents);
+        $file_contents = str_replace("{{name}}",$package[name],$file_contents);
+        $file_contents = str_replace("{{maintainer}}",$package['maintainer'],$file_contents);
         $file_contents = str_replace("{{dependencies}}",$dependenciesString,$file_contents);
         $file_contents = str_replace("{{version}}",$version,$file_contents);
-        $file_contents = str_replace("{{description}}",$this->container->getParameter('ton_debianize.package.description'),$file_contents);
+        $file_contents = str_replace("{{description}}",$package['description'],$file_contents);
         $file_contents = str_replace("{{size}}",$size,$file_contents);
         file_put_contents($controlFileDestination,$file_contents);
 

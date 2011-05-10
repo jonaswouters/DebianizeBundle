@@ -1,4 +1,4 @@
-Rackage: {{name}}
+Package: {{name}}
 Version: {{version}}
 Section: web
 Priority: optional

@@ -40,7 +40,7 @@ class Configuration
                         ->scalarNode('name')->defaultValue('symfony2')->cannotBeEmpty()->end()
                         ->scalarNode('description')->defaultValue('symfony2 application')->cannotBeEmpty()->end()
                         ->scalarNode('maintainer')->cannotBeEmpty()->end()
-                        ->arrayNode('dependencies')->ignoreExtraKeys()->cannotBeEmpty()->end()
+                        ->arrayNode('dependencies')->cannotBeEmpty()->addDefaultsIfNotSet()->ignoreExtraKeys()->defaultValue(array('php5 (>= 5.3)'))->prototype('scalar')->end()
                     ->end()
                 ->end();
 
