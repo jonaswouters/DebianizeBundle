@@ -26,10 +26,23 @@ class Configuration
 
         $rootNode
             ->children()
-                ->scalarNode('command')->defaultValue('dpkg')->end()
-                ->scalarNode('options')->defaultValue('-Cva')->end()
+                ->arrayNode('commands')->children()
+                    ->scalarNode('tar')->defaultValue('tar')->end()
+                    ->scalarNode('ar')->defaultValue('ar')->end()
+                ->end()->end()
+                ->scalarNode('install_location')->defaultValue('/var/www/symfony2')->end()
+                ->arrayNode('additional_resources')->addDefaultsIfNotSet()->defaultValue(array('app/config/vhost' => '/etc/apache2/sites-available/mysite.com'))->end()
+                ->arrayNode('excludes')->defaultValue(array('data.tar.gz','control.tar.gz'))->end()
                 ->scalarNode('root')->defaultValue('%kernel.root_dir%/..')->cannotBeEmpty()->end()
-            ->end();
+                ->scalarNode('kablah')->defaultValue('hoera')->cannotBeEmpty()->end()
+                ->arrayNode('package')->addDefaultsIfNotSet()
+                    ->children()
+                        ->scalarNode('name')->defaultValue('symfony2')->cannotBeEmpty()->end()
+                        ->scalarNode('description')->defaultValue('symfony2 application')->cannotBeEmpty()->end()
+                        ->scalarNode('maintainer')->cannotBeEmpty()->end()
+                        ->arrayNode('dependencies')->ignoreExtraKeys()->cannotBeEmpty()->end()
+                    ->end()
+                ->end();
 
         return $treeBuilder->buildTree();
     }

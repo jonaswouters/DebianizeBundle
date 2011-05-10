@@ -1,0 +1,9 @@
+Rackage: {{name}}
+Version: {{version}}
+Section: web
+Priority: optional
+Architecture: all
+Depends: {{dependencies}}
+Installed-Size: {{size}}
+Maintainer: {{maintainer}}
+Description: {{description}}

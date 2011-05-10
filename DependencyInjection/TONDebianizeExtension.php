@@ -15,7 +15,7 @@ class TONDebianizeExtension extends Extension
      * @var array
      */
     protected $resources = array(
-        //'services' => 'services.xml',
+        'services' => 'services.xml',
     );
     
     /**
@@ -30,7 +30,7 @@ class TONDebianizeExtension extends Extension
         $configuration = new Configuration();
         $config = $processor->process($configuration->getConfigTree(), $configs);
 
-        //$this->loadDefaults($container);
+        $this->loadDefaults($container);
 
         foreach ($config as $key => $value) {
             $container->setParameter($this->getAlias().'.'.$key, $value);
