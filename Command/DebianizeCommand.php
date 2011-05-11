@@ -90,6 +90,24 @@ class DebianizeCommand extends BaseCommand
         $debianizer->createLink($root . '/..', $destinationFolder);
         $output->writeln('Created symlink cache/debian/data/' . $destinationFolder);
 
+        // Create extra links
+        $additionalResources = $this->container->getParameter('ton_debianize.additional_resources');
+        foreach ($additionalResources as $additionalResource) {
+            $source = $additionalResource['source'];
+            $destination = $additionalResource['destination'];
+            $source = trim($source, '/');
+            $destination = trim($destination, '/');
+
+            $destinationDepth = count(explode('/', $destination));
+            $destinationRoot = str_repeat('../', ($destinationDepth - 1));
+            $destinationDirectory = substr($destination, 0, strripos($destination, '/'));
+            $debianizer->createFolder($destinationDirectory);
+            $output->writeln('Created destination dir cache/debian/data/' . $destinationDirectory);
+
+            $debianizer->createLink($root . '/' . $source, $destination);
+            $output->writeln('Created symlink cache/debian/data/' . $destination);
+        }
+
         // Excludes
         $excludes = $this->container->getParameter('ton_debianize.excludes');
 
