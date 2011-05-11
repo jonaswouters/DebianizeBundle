@@ -11,6 +11,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Output\Output;
 use Symfony\Bundle\FrameworkBundle\Command\Command as BaseCommand;
 use Symfony\Component\Process\Process;
+use TON\Bundle\DebianizeBundle\Debianizer\Debianizer;
 
 /**
  * DebianizeCommand 
@@ -39,60 +40,40 @@ class DebianizeCommand extends BaseCommand
 
         // config elements
         $root = realpath($this->container->getParameter('kernel.root_dir'));
-        $destinationFolder = trim($this->container->getParameter('ton_debianize.install_location'), '/');
-        $destinationDepth = count(explode('/', $destinationFolder));
-        $destinationRoot = str_repeat('../', ($destinationDepth - 1));
+        $workingFolder = $root . '/cache/debian';
+
 
         if (!$root) {
             throw new \InvalidArgumentException(sprintf('Invalid "root" option : "%s" is not a valid path', $config['root']));
         }
 
-        // create data dir
-        $command = 'mkdir -p cache/debian/data';
-        $process = new Process($command, $root);
-        $code = $process->run();
-        $output->writeln('Created directory cache/debian/data');
-
-        // create control dir
-        $command = 'mkdir -p cache/debian/control';
-        $process = new Process($command, $root);
-        $code = $process->run();
-        $output->writeln('Created directory cache/debian/control');
-
-        // create destination dir
-        $destinationDirectory = substr($destinationFolder, 0, strripos($destinationFolder, '/'));
-        $command = 'mkdir -p ' . $destinationDirectory;
-        $process = new Process($command, $root . '/cache/debian/data');
-        $code = $process->run();
-        $output->writeln('Created destination dir cache/debian/data/' . $destinationDirectory);
-
-        // create symlink
-        $command = 'ln -s ../../../../'.$destinationRoot.' '.$destinationFolder;
-        $process = new Process($command, $root . '/cache/debian/data');
-        $code = $process->run();
-        $output->writeln('Created symlink cache/debian/data/' . $destinationFolder);
-
-        // Archive data
-        $firstFolder = substr($destinationFolder, 0, strripos($destinationFolder, '/'));
-        $command = 'tar -hzcf ../data.tar.gz --exclude="app/cache" ./';
-        $process = new Process($command, $root . '/cache/debian/data');
-        //$code = $process->run();
-        $output->writeln('Created data file cache/debian/data.tar.gz');
-
-
-        // Create control file
-        // Disk usage
-        $command = 'du -sk --exclude=app/cache/*';
-        $process = new Process($command, $root . '/..');
-        $code = $process->run();
-        $size = $process->getOutput();
-        $size = substr($size, 0, strpos($size, ' ' ));
-        if (!$size) {
-            $size = 0;
+        // Version number 
+        $version = $input->getArgument('version');
+        if (!$version) {
+            $version = '1.0';
         }
 
-        // dependencies
+        $debianizer = new Debianizer($workingFolder);
+
+        // Create the working environment
+        $debianizer->createWorkingFolder();
+        $output->writeln('Created directory cache/debian/data and cache/debian/control');
+
+        // Destination folder
+        $destinationFolder = trim($this->container->getParameter('ton_debianize.install_location'), '/');
+        $destinationDepth = count(explode('/', $destinationFolder));
+        $destinationRoot = str_repeat('../', ($destinationDepth - 1));
+        $destinationDirectory = substr($destinationFolder, 0, strripos($destinationFolder, '/'));
+        $debianizer->createFolder($destinationDirectory);
+        $output->writeln('Created destination dir cache/debian/data/' . $destinationDirectory);
+
+        // -------------------
+        // Create control file
+        // -------------------
+        $size = $debianizer->getFolderSize($root . '/..');
         $package = $this->container->getParameter('ton_debianize.package');
+
+        // dependencies
         $dependencies = $package['dependencies'];
         $dependenciesString = '';
         foreach ($dependencies as $dependency) {
@@ -101,23 +82,27 @@ class DebianizeCommand extends BaseCommand
             }
             $dependenciesString .= $dependency;
         }
+        $controlFileTemplate = $root.'/../vendor/bundles/TON/Bundle/DebianizeBundle/Resources/control';
+        $debianizer->createControlFile($controlFileTemplate, $package['name'], $package['description'], $package['maintainer'], $version, $dependenciesString, $size);
 
-        $version = $input->getArgument('version');
-        if (!$version) {
-            $version = '1.0';
-        }
 
-        
-        $controlFile = $root.'/../vendor/bundles/TON/Bundle/DebianizeBundle/Resources/control';
-        $controlFileDestination = $root.'/cache/debian/control/control';
-        $file_contents = file_get_contents($controlFile);
-        $file_contents = str_replace("{{name}}",$package[name],$file_contents);
-        $file_contents = str_replace("{{maintainer}}",$package['maintainer'],$file_contents);
-        $file_contents = str_replace("{{dependencies}}",$dependenciesString,$file_contents);
-        $file_contents = str_replace("{{version}}",$version,$file_contents);
-        $file_contents = str_replace("{{description}}",$package['description'],$file_contents);
-        $file_contents = str_replace("{{size}}",$size,$file_contents);
-        file_put_contents($controlFileDestination,$file_contents);
+        // create root link
+        $debianizer->createLink($root . '/..', $destinationFolder);
+        $output->writeln('Created symlink cache/debian/data/' . $destinationFolder);
+
+        // Excludes
+        $excludes = $this->container->getParameter('ton_debianize.excludes');
+
+        // Create archives
+        $debianizer->createDataArchive($excludes);
+        $output->writeln('Created data file cache/debian/data.tar.gz');
+
+        $debianizer->createControlArchive();
+        $output->writeln('Created data file cache/debian/control.tar.gz');
+
+        // Create debian package
+        $debianizer->createDebianPackage();
+        $output->writeln('Created debian file cache/debian/debian.deb');
 
         // Finished
         $message = 'Debianize success';
