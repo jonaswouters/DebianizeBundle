@@ -7,16 +7,32 @@ use BeSimple\DeploymentBundle\Events;
 use BeSimple\DeploymentBundle\Event\DeployerEvent;
 use Symfony\Component\Process\Process;
 
+/**
+ * Debianizer class helps you build a debian package file without the deb helper functions.  
+ * Tar, ar, mkdir and ln are the tools used.
+ * 
+ * @author Jonas Wouters <jonas@21net.com>
+ */
 class Debianizer
 {
 
     private $workingFolder;
 
+    /**
+     * __construct 
+     * 
+     * @param string $workingFolder 
+     */
     public function __construct($workingFolder)
     {
         $this->workingFolder = $workingFolder;
     }
 
+    /**
+     * getFolderSize 
+     * 
+     * @param string $folder 
+     */
     public function getFolderSize($folder)
     {
         // Disk usage
@@ -32,6 +48,11 @@ class Debianizer
         return $size;
     }
 
+    /**
+     * createWorkingFolder creates a folder structure in the specified workingFolder for creating a debian package
+     * 
+     * @return boolean
+     */
     public function createWorkingFolder()
     {
         // create debian dir
@@ -55,6 +76,12 @@ class Debianizer
         return true;
     }
 
+    /**
+     * createFolder creates a folder in the workingFolder
+     * 
+     * @param string $folder 
+     * @return boolean
+     */
     public function createFolder($folder)
     {
         $command = 'mkdir -p ' . $folder;
@@ -64,6 +91,17 @@ class Debianizer
         return true;
     }
 
+    /**
+     * createControlFile creates a debian control file from a template and replaces the parameters.
+     * 
+     * @param string $controlFileTemplate 
+     * @param string $name 
+     * @param string $description 
+     * @param string $maintainer 
+     * @param string $version 
+     * @param string $dependencies 
+     * @param int $size 
+     */
     public function createControlFile($controlFileTemplate, $name, $description, $maintainer, $version, $dependencies, $size)
     {
         $controlFileDestination = $this->workingFolder.'/control/control';
@@ -77,6 +115,13 @@ class Debianizer
         file_put_contents($controlFileDestination,$file_contents);
     }
 
+    /**
+     * Create a link 
+     * 
+     * @param string $source 
+     * @param string $destination 
+     * @return boolean
+     */
     public function createLink($source, $destination)
     {
         $command = 'ln -s '.$source.' '.$destination;
@@ -86,6 +131,15 @@ class Debianizer
         return true;
     }
 
+    /**
+     * Create a tar.gz archive 
+     * 
+     * @param string $name Name of the archive
+     * @param string $folder Folder used to create archive
+     * @param array $excludes Files, folders or pattern to exclude from the archive
+     * @param boolean $useLeadingDotSlash add a ./ in front of the folder
+     * @return boolean
+     */
     public function createArchive($name, $folder, $excludes = array(), $useLeadingDotSlash = false)
     {
         $files = '*';
@@ -99,18 +153,37 @@ class Debianizer
         $command = 'tar -hzcf ../' . $name . $excludesString . $files;
         $process = new Process($command, $this->workingFolder . '/' . $folder);
         $code = $process->run();
+
+        return true;
     }
 
+    /**
+     * Create a data.tar.gz archive from the data folder. 
+     * 
+     * @param array $excludes Files, folders or pattern to exclude from the archive
+     * @return boolean
+     */
     public function createDataArchive($excludes)
     {
-        $this->createArchive('data.tar.gz', 'data', $excludes, true); 
+        return $this->createArchive('data.tar.gz', 'data', $excludes, true); 
     }
 
+    /**
+     * Create a control.tar.gz archive from the control folder. 
+     * 
+     * @return boolean
+     */
     public function createControlArchive()
     {
-        $this->createArchive('control.tar.gz', 'control'); 
+        return $this->createArchive('control.tar.gz', 'control'); 
     }
 
+    /**
+     * Create a deb package. 
+     * 
+     * @param string $name The name of the file without extension
+     * @return boolean
+     */
     public function createDebianPackage($name = 'debian')
     {
         $command = 'ar rcv ' . $name . '.deb debian-binary control.tar.gz data.tar.gz';
