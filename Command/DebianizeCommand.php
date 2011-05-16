@@ -26,11 +26,13 @@ class DebianizeCommand extends BaseCommand
 
         $this
             ->setDefinition(array(
-                new InputArgument('version', InputArgument::OPTIONAL, 'The target versio number', null),
+                new InputArgument('version', InputArgument::OPTIONAL, 'The target version number', null),
+                new InputArgument('development', InputArgument::OPTIONAL, 'Is this a development snapshot', null),
+                new InputArgument('architecture', InputArgument::OPTIONAL, 'Package architecture', null),
             ))
         ;
 
-        $this->setName('debianize');
+        $this->setName('debianize:build');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -51,6 +53,17 @@ class DebianizeCommand extends BaseCommand
         $version = $input->getArgument('version');
         if (!$version) {
             $version = '1.0';
+        }
+
+        $development = $input->getArgument('development');
+        if ($development) {
+            $version .='~SNAPSHOT~' . time();
+        }
+        $architecture = $input->getArgument('architecture');
+        if ($architecture) {
+            $version .='_' . $architecture;
+        } else {
+            $version .= '_all';
         }
 
         $debianizer = new Debianizer($workingFolder);
@@ -114,11 +127,11 @@ class DebianizeCommand extends BaseCommand
         $additionalControlFiles = $this->container->getParameter('ton_debianize.additional_control_files');
         if ($additionalControlFiles) {
             foreach ($additionalControlFiles as $additionalControlFile) {
-                $source = $additionalResource['source'];
-                $destination = $additionalResource['destination'];
+                $source = $additionalControlFile['source'];
+                $destination = $additionalControlFile['destination'];
                 $source = trim($source, '/');
 
-                $debianizer->createLink($root . '/' . $source, $destination);
+                $debianizer->createLink($root . '/' . $source, $destination, 'control');
                 $output->writeln('Created symlink cache/debian/control/' . $destination);
             }
         }
@@ -134,15 +147,14 @@ class DebianizeCommand extends BaseCommand
         $output->writeln('Created data file cache/debian/control.tar.gz');
 
         // Create debian package
-        $debianizer->createDebianPackage();
-        $output->writeln('Created debian file cache/debian/debian.deb');
+        $fileName = $package['name'] . '_' . $version;
+        $debianizer->createDebianPackage($fileName);
+        $output->writeln('Created debian file cache/debian/' . $fileName . '.deb');
 
         // Finished
         $message = 'Debianize success';
         $output->writeln($message);
         $output->setDecorated(true);
-
-
     }
 }
 

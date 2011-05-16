@@ -122,10 +122,10 @@ class Debianizer
      * @param string $destination 
      * @return boolean
      */
-    public function createLink($source, $destination)
+    public function createLink($source, $destination, $folder = 'data')
     {
         $command = 'ln -s '.$source.' '.$destination;
-        $process = new Process($command, $this->workingFolder . '/data');
+        $process = new Process($command, $this->workingFolder . '/' . $folder);
         $code = $process->run();
 
         return true;
@@ -150,7 +150,7 @@ class Debianizer
         foreach ($excludes as $exclude) {
             $excludesString .= '--exclude="'.$exclude.'" ';
         }
-        $command = 'tar -hzcf ../' . $name . $excludesString . $files;
+        $command = 'tar --hard-dereference -hzcf ../' . $name . $excludesString . $files;
         $process = new Process($command, $this->workingFolder . '/' . $folder);
         $code = $process->run();
 

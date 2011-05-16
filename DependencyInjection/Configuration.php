@@ -57,6 +57,16 @@ class Configuration
                         ->prototype('scalar')->end()
                     ->end()
                 ->end()
+            ->end()
+            ->arrayNode('deploy')->addDefaultsIfNotSet()
+                ->children()
+                    ->scalarNode('username')->defaultValue('root')->cannotBeEmpty()->end()
+                    ->scalarNode('password')->cannotBeEmpty()->end()
+                    ->scalarNode('host')->cannotBeEmpty()->end()
+                    ->arrayNode('commands')->cannotBeEmpty()->ignoreExtraKeys()
+                        ->prototype('scalar')->end()
+                    ->end()
+                ->end()
             ->end();
 
         return $treeBuilder->buildTree();
