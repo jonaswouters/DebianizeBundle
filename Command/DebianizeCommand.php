@@ -60,10 +60,8 @@ class DebianizeCommand extends BaseCommand
             $version .='~SNAPSHOT~' . time();
         }
         $architecture = $input->getArgument('architecture');
-        if ($architecture) {
-            $version .='_' . $architecture;
-        } else {
-            $version .= '_all';
+        if (!$architecture) {
+            $architecture .= '_all';
         }
 
         $debianizer = new Debianizer($workingFolder);
@@ -147,7 +145,7 @@ class DebianizeCommand extends BaseCommand
         $output->writeln('Created data file cache/debian/control.tar.gz');
 
         // Create debian package
-        $fileName = $package['name'] . '_' . $version;
+        $fileName = $package['name'] . '_' . $version . $architecture;
         $debianizer->createDebianPackage($fileName);
         $output->writeln('Created debian file cache/debian/' . $fileName . '.deb');
 

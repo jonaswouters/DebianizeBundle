@@ -44,7 +44,6 @@ class DeployCommand extends BaseCommand
         $eventDispatcher = $this->container->get('event_dispatcher');
         $logger = $this->container->get('logger');
 
-
         // config elements
         $root = realpath($this->container->getParameter('kernel.root_dir'));
         $workingFolder = $root . '/cache/debian';
@@ -61,9 +60,12 @@ class DeployCommand extends BaseCommand
         $ssh->connect();
         $ssh->sendFile($workingFolder.'/' . $package, $package);
 
-        foreach ($config['commands'] as $command)
+        foreach ($config['commands'] as $key => $command)
         {
-            $ssh->execute($command);
+            $command = str_replace('{file_name}', $package, $command);
+
+            $output->writeln('Executing command ' . $key+1);
+            $output->writeln($ssh->execute($command));
         }
 
         if (!$root) {
