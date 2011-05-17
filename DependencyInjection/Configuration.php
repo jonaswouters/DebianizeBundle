@@ -1,4 +1,12 @@
 <?php
+/*
+ * This file is part of the Sonata project.
+ *
+ * (c) 21net.com <info@21net.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 
 namespace TON\Bundle\DebianizeBundle\DependencyInjection;
 
@@ -10,7 +18,7 @@ use Symfony\Component\Config\Definition\Builder\TreeBuilder;
  * This information is solely responsible for how the different configuration
  * sections are normalized, and merged.
  *
- * @author Jonas Wouters <hello@jonaswouters.be>
+ * @author Jonas Wouters <jonas@21net.com>
  */
 class Configuration
 {

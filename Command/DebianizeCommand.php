@@ -1,4 +1,12 @@
 <?php
+/*
+ * This file is part of the Sonata project.
+ *
+ * (c) 21net.com <info@21net.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 
 namespace TON\Bundle\DebianizeBundle\Command;
 
@@ -37,9 +45,6 @@ class DebianizeCommand extends BaseCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $eventDispatcher = $this->container->get('event_dispatcher');
-        $logger = $this->container->get('logger');
-
         // config elements
         $root = realpath($this->container->getParameter('kernel.root_dir'));
         $workingFolder = $root . '/cache/debian';
@@ -64,6 +69,7 @@ class DebianizeCommand extends BaseCommand
             $architecture .= '_all';
         }
 
+        // TODO: Create service
         $debianizer = new Debianizer($workingFolder);
 
         // Create the working environment
@@ -87,11 +93,13 @@ class DebianizeCommand extends BaseCommand
         // dependencies
         $dependencies = $package['dependencies'];
         $dependenciesString = '';
-        foreach ($dependencies as $dependency) {
-            if ($dependenciesString != '') {
-                $dependenciesString .= ', ';
+        if ($dependencies) {
+            foreach ($dependencies as $dependency) {
+                if ($dependenciesString != '') {
+                    $dependenciesString .= ', ';
+                }
+                $dependenciesString .= $dependency;
             }
-            $dependenciesString .= $dependency;
         }
         $controlFileTemplate = $root.'/../vendor/bundles/TON/Bundle/DebianizeBundle/Resources/control';
         $debianizer->createControlFile($controlFileTemplate, $package['name'], $package['description'], $package['maintainer'], $version, $dependenciesString, $size);
