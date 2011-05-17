@@ -1,6 +1,6 @@
 <?php
 /*
- * This file is part of the Sonata project.
+ * This file is part of the DebianizeBundle project.
  *
  * (c) 21net.com <info@21net.com>
  *
