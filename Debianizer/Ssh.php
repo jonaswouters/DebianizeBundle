@@ -69,7 +69,7 @@ class Ssh
         $this->shell = ssh2_shell($this->session);
 
         if (!$this->shell) {
-            throw new \RuntimeException(sprintf('Failed opening "%s" shell', $this->config['shell']));
+            throw new \RuntimeException('Failed opening "%s" shell');
         }
     }        
 
