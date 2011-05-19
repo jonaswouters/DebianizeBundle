@@ -100,10 +100,11 @@ class DeployCommand extends BaseCommand
         $d = dir($workingFolder);
         while (false !== ($entry = $d->read())) {
             $filepath = "{$workingFolder}/{$entry}";
+            $latestCtime = 0;
             // could do also other checks than just checking whether the entry is a file
             if (is_file($filepath) && filectime($filepath) > $latestCtime) {
                 $fileInfo = pathinfo($filepath);
-                if ($fileInfo['extension'] == 'deb') {
+                if (isset($fileInfo['extension']) && $fileInfo['extension'] == 'deb') {
                     $latestCtime = filectime($filepath);
                     $latestFilename = $entry;
                 }
