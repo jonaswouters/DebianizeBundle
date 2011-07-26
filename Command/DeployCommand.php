@@ -49,11 +49,11 @@ class DeployCommand extends BaseCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $eventDispatcher = $this->container->get('event_dispatcher');
-        $logger = $this->container->get('logger');
+        $eventDispatcher = $this->getContainer()->get('event_dispatcher');
+        $logger = $this->getContainer()->get('logger');
 
         // config elements
-        $root = realpath($this->container->getParameter('kernel.root_dir'));
+        $root = realpath($this->getContainer()->getParameter('kernel.root_dir'));
         $workingFolder = $root . '/cache/debian';
 
         $package = $input->getArgument('package');
@@ -62,7 +62,7 @@ class DeployCommand extends BaseCommand
         }
 
         // Deploy settings
-        $config = $this->container->getParameter('ton_debianize.deploy');
+        $config = $this->getContainer()->getParameter('ton_debianize.deploy');
 
         $ssh = new Ssh($config);
         $ssh->connect();
