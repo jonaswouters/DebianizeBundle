@@ -46,7 +46,7 @@ class DebianizeCommand extends BaseCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         // config elements
-        $root = realpath($this->container->getParameter('kernel.root_dir'));
+        $root = realpath($this->getContainer()->getParameter('kernel.root_dir'));
         $workingFolder = $root . '/cache/debian';
 
 
@@ -77,7 +77,7 @@ class DebianizeCommand extends BaseCommand
         $output->writeln('Created directory cache/debian/data and cache/debian/control');
 
         // Destination folder
-        $destinationFolder = trim($this->container->getParameter('ton_debianize.install_location'), '/');
+        $destinationFolder = trim($this->getContainer()->getParameter('ton_debianize.install_location'), '/');
         $destinationDepth = count(explode('/', $destinationFolder));
         $destinationRoot = str_repeat('../', ($destinationDepth - 1));
         $destinationDirectory = substr($destinationFolder, 0, strripos($destinationFolder, '/'));
@@ -88,7 +88,7 @@ class DebianizeCommand extends BaseCommand
         // Create control file
         // -------------------
         $size = $debianizer->getFolderSize($root . '/..');
-        $package = $this->container->getParameter('ton_debianize.package');
+        $package = $this->getContainer()->getParameter('ton_debianize.package');
 
         // dependencies
         $dependencies = $package['dependencies'];
@@ -110,7 +110,7 @@ class DebianizeCommand extends BaseCommand
         $output->writeln('Created symlink cache/debian/data/' . $destinationFolder);
 
         // Additional resources links
-        $additionalResources = $this->container->getParameter('ton_debianize.additional_resources');
+        $additionalResources = $this->getContainer()->getParameter('ton_debianize.additional_resources');
         if ($additionalResources) {
             foreach ($additionalResources as $additionalResource) {
                 $source = $additionalResource['source'];
@@ -130,7 +130,7 @@ class DebianizeCommand extends BaseCommand
         }
         //
         // Additional control files
-        $additionalControlFiles = $this->container->getParameter('ton_debianize.additional_control_files');
+        $additionalControlFiles = $this->getContainer()->getParameter('ton_debianize.additional_control_files');
         if ($additionalControlFiles) {
             foreach ($additionalControlFiles as $additionalControlFile) {
                 $source = $additionalControlFile['source'];
@@ -143,7 +143,7 @@ class DebianizeCommand extends BaseCommand
         }
 
         // Excludes
-        $excludes = $this->container->getParameter('ton_debianize.excludes');
+        $excludes = $this->getContainer()->getParameter('ton_debianize.excludes');
 
         // Create archives
         $debianizer->createDataArchive($excludes);
